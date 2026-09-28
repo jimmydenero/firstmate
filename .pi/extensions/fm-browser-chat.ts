@@ -21,7 +21,7 @@
 // - The transport and its security boundary live in lib/fm-browser-chat-server.ts.
 import { spawnSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -157,6 +157,16 @@ function accessToken(): string {
   return token;
 }
 
+// Changes whenever the flag file is created, removed, or rewritten; "" while off.
+function flagSignature(): string {
+  try {
+    const stat = statSync(flagFile);
+    return `${stat.mtimeMs}:${stat.size}`;
+  } catch {
+    return "";
+  }
+}
+
 function previousPort(): number | undefined {
   try {
     const port = Number(readFileSync(portFile, "utf8").trim());
@@ -171,6 +181,7 @@ export default function firstmateBrowserChat(pi: ExtensionAPI): void {
   let server: BrowserChatServer | null = null;
   let starting: Promise<void> | null = null;
   let stopped = false;
+  let failure: { flag: string; reason: string } | null = null;
   let busy = false;
   let partial: { key: string; text: string; tools: string[]; timestamp: number } | null = null;
   let partialTimer: ReturnType<typeof setTimeout> | null = null;
@@ -345,7 +356,10 @@ export default function firstmateBrowserChat(pi: ExtensionAPI): void {
         partialTimer = null;
       }
     }
-    recent.push(item);
+    // Pi persists custom messages before any later snapshot can read the
+    // branch, and their entry carries its own timestamp, so only the roles
+    // persisted under the message's timestamp are buffered here.
+    if (item.role !== "custom") recent.push(item);
     if (recent.length > RECENT_ITEMS) recent.splice(0, recent.length - RECENT_ITEMS);
     publish({ type: "item", item });
   }
@@ -417,15 +431,26 @@ export default function firstmateBrowserChat(pi: ExtensionAPI): void {
     })}\n`);
   }
 
-  function maybeStart(): Promise<void> {
+  // After a failed start, turns do not retry until the flag file changes;
+  // /browser-chat always retries.
+  function maybeStart(retry = false): Promise<void> {
     if (server || stopped) return Promise.resolve();
     if (starting) return starting;
-    if (!existsSync(flagFile)) return Promise.resolve();
+    const flag = flagSignature();
+    if (!flag) return Promise.resolve();
+    if (!retry && failure?.flag === flag) return Promise.resolve();
     if (sessionLockOwnership(state) !== "owned") return Promise.resolve();
     starting = start()
-      .catch((error: unknown) => {
-        if (ctx?.hasUI) ctx.ui.notify(`Browser chat could not start: ${error instanceof Error ? error.message : String(error)}`, "warning");
-      })
+      .then(
+        () => {
+          failure = null;
+        },
+        (error: unknown) => {
+          const reason = error instanceof Error ? error.message : String(error);
+          if (ctx?.hasUI && !retry && reason !== failure?.reason) ctx.ui.notify(`Browser chat could not start: ${reason}`, "warning");
+          failure = { flag, reason };
+        },
+      )
       .finally(() => {
         starting = null;
       });
@@ -456,8 +481,16 @@ export default function firstmateBrowserChat(pi: ExtensionAPI): void {
     return spawnSync(opener, [url], { stdio: "ignore" }).status === 0;
   }
 
+  // Pi fires session_shutdown then session_start on this same instance for
+  // /new, /resume and /fork: the new session serves again from a clean slate.
   pi.on("session_start", async (_event, context) => {
     ctx = context;
+    stopped = false;
+    busy = false;
+    partial = null;
+    recent.length = 0;
+    pendingSends.length = 0;
+    operationalCache.clear();
     await maybeStart();
   });
   pi.on("agent_start", async (_event, context) => {
@@ -469,7 +502,7 @@ export default function firstmateBrowserChat(pi: ExtensionAPI): void {
     ctx = context;
     busy = false;
     publishStatus();
-    if (server && !existsSync(flagFile)) {
+    if (server && !flagSignature()) {
       await stop();
       stopped = false;
       return;
@@ -494,11 +527,10 @@ export default function firstmateBrowserChat(pi: ExtensionAPI): void {
   pi.on("message_end", async (event) => {
     finalize(event.message as LooseMessage);
   });
-  pi.on("session_compact", async () => {
-    const at = Date.now();
-    const item: ChatItem = { key: `notice:${at}`, role: "notice", text: "Earlier conversation was compacted.", timestamp: at };
-    recent.push(item);
-    publish({ type: "item", item });
+  // The compaction entry is already on the branch, so snapshots carry it.
+  pi.on("session_compact", async (event) => {
+    const at = Date.parse(event.compactionEntry.timestamp);
+    publish({ type: "item", item: { key: `notice:${at}`, role: "notice", text: "Earlier conversation was compacted.", timestamp: at } });
   });
   pi.on("session_shutdown", async () => {
     await stop();
@@ -508,13 +540,16 @@ export default function firstmateBrowserChat(pi: ExtensionAPI): void {
     description: "Open this Firstmate conversation in the local browser chat page (\"copy\" copies its link instead).",
     handler: async (args, context) => {
       ctx = context;
-      if (!existsSync(flagFile)) {
+      if (!flagSignature()) {
         context.ui.notify(`Browser chat is off. Create ${flagFile} to turn it on, then run /browser-chat again.`, "warning");
         return;
       }
-      await maybeStart();
+      await maybeStart(true);
       if (!server) {
-        context.ui.notify("Browser chat is not running: this Pi session does not hold the Firstmate session lock.", "warning");
+        context.ui.notify(
+          failure ? `Browser chat could not start: ${failure.reason}` : "Browser chat is not running: this Pi session does not hold the Firstmate session lock.",
+          "warning",
+        );
         return;
       }
       const url = `http://127.0.0.1:${server.port}/#token=${accessToken()}`;

@@ -65,6 +65,21 @@ test_operational_and_tool_projection() {
   pass "Firstmate notifications and tool activity are marked so the page can fold them"
 }
 
+test_session_replacement_serves_again() {
+  run_scenario session-replacement >/dev/null
+  pass "after /new, /resume or /fork the same Pi instance serves the new session from a clean slate, and a final quit stays down"
+}
+
+test_notices_and_custom_messages_appear_once() {
+  run_scenario notices-and-custom >/dev/null
+  pass "compaction notices and displayed custom messages appear once after reconnect"
+}
+
+test_start_failure_backs_off() {
+  run_scenario start-failure-backoff >/dev/null
+  pass "a failed start warns once and waits for the flag file to change before retrying"
+}
+
 test_markdown_is_safe_and_links_are_exact() {
   run_scenario markdown >/dev/null
   pass "Markdown renders untrusted text safely and link copy uses exact original URL bytes in display order"
@@ -104,6 +119,9 @@ test_extension_requires_session_lock
 test_security_boundary
 test_conversation_stream_reconnect_and_dedupe
 test_operational_and_tool_projection
+test_session_replacement_serves_again
+test_notices_and_custom_messages_appear_once
+test_start_failure_backs_off
 test_markdown_is_safe_and_links_are_exact
 test_client_fallbacks
 test_script_reports_state

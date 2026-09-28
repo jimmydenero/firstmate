@@ -5,6 +5,7 @@
 import { request } from "node:http";
 import { statSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { pathToFileURL } from "node:url";
 
 const home = process.env.FM_HOME;
@@ -304,6 +305,96 @@ const scenarios = {
     check(toolStep.tools && toolStep.tools[0] === "bash", "tool step names its tool");
     check(toolResult.role === "tool" && toolResult.text.length < 1700, "tool output is truncated in the page");
     live.close();
+    await fake.emit("session_shutdown");
+  },
+
+  async "session-replacement"() {
+    lockSelf();
+    enable();
+    const fake = fakePi();
+    await load(fake.pi);
+    await fake.emit("session_start");
+    await fake.emit("message_end", { message: { role: "user", content: "old conversation", timestamp: 10 } }, { persist: false });
+    await fake.emit("session_shutdown");
+    check(endpoint() === null, "endpoint removed while the session is replaced");
+
+    // /new: the same extension instance gets session_start for the new session.
+    fake.state.sessionId = "sess-2";
+    fake.branch.length = 0;
+    await fake.emit("session_start");
+    const ep = endpoint();
+    check(ep && ep.sessionId === "sess-2", "the replacement session serves again");
+    const live = stream(ep.port);
+    await live.opened;
+    const snap = await live.waitFor((event) => event.type === "snapshot", "snapshot after replacement");
+    check(snap.session.id === "sess-2", "snapshot describes the new session");
+    check(!snap.items.some((item) => item.text === "old conversation"), "the previous session's buffered items are gone");
+    live.close();
+    const sent = await sendMessage(ep.port, "req-replaced-0001", "hello again");
+    check(JSON.parse(sent.body).status === "accepted" && fake.sent.length === 1, "the replacement session accepts browser input");
+
+    // A terminal quit stays quiet: late callbacks never reopen the page.
+    await fake.emit("session_shutdown");
+    await fake.emit("agent_settled");
+    check(endpoint() === null, "no late restart after the final shutdown");
+  },
+
+  async "notices-and-custom"() {
+    lockSelf();
+    enable();
+    const fake = fakePi();
+    await load(fake.pi);
+    await fake.emit("session_start");
+    // Pi writes the compaction entry before session_compact fires.
+    const compactionEntry = { type: "compaction", id: "c1", timestamp: new Date(1_800_000_000_000).toISOString(), summary: "s", firstKeptEntryId: "e0", tokensBefore: 1 };
+    fake.branch.push(compactionEntry);
+    const live = stream(endpoint().port);
+    await live.opened;
+    await live.waitFor((event) => event.type === "snapshot", "initial snapshot");
+    await fake.emit("session_compact", { compactionEntry, fromExtension: false, reason: "threshold", willRetry: false });
+    const notice = await live.waitFor((event) => event.type === "item" && event.item.role === "notice", "live compaction notice");
+    // Pi persists a custom message after message_end, under the entry's own timestamp.
+    const customAt = 1_800_000_000_500;
+    const custom = { role: "custom", customType: "note", content: "heads up", display: true, timestamp: customAt };
+    await fake.emit("message_end", { message: custom }, { persist: false });
+    await live.waitFor((event) => event.type === "item" && event.item.role === "custom", "live custom note");
+    fake.branch.push({ type: "custom_message", id: "m1", customType: "note", content: "heads up", display: true, timestamp: new Date(customAt + 3).toISOString() });
+    live.close();
+
+    const again = stream(endpoint().port);
+    await again.opened;
+    const snap = await again.waitFor((event) => event.type === "snapshot", "reconnect snapshot");
+    const notices = snap.items.filter((item) => item.role === "notice");
+    check(notices.length === 1 && notices[0].key === notice.item.key, `compaction notice appears once under its live key: ${JSON.stringify(notices)}`);
+    check(snap.items.filter((item) => item.role === "custom").length === 1, "custom note appears once after reconnect");
+    again.close();
+    await fake.emit("session_shutdown");
+  },
+
+  async "start-failure-backoff"() {
+    lockSelf();
+    const blocker = createServer();
+    await new Promise((resolveListen) => blocker.listen(0, "127.0.0.1", resolveListen));
+    const port = blocker.address().port;
+    enable(`port=${port}\n`);
+    const fake = fakePi();
+    const notes = [];
+    fake.ctx.hasUI = true;
+    fake.ctx.ui.notify = (message) => notes.push(message);
+    await load(fake.pi);
+    await fake.emit("session_start");
+    for (let turn = 0; turn < 3; turn++) await fake.emit("agent_settled");
+    check(endpoint() === null, "a taken pinned port does not serve");
+    check(notes.length === 1, `start failure is reported once, not every turn: ${JSON.stringify(notes)}`);
+
+    // Turns do not retry once the port frees, until the flag file changes.
+    await new Promise((resolveClose) => blocker.close(resolveClose));
+    await fake.emit("agent_settled");
+    check(endpoint() === null, "no retry every turn while the flag file is unchanged");
+    enable(`port=${port}\n# retry\n`);
+    await fake.emit("agent_settled");
+    check(endpoint()?.port === port, "a changed flag file retries the start");
+    check(notes.length === 1, "no new warning after a successful retry");
     await fake.emit("session_shutdown");
   },
 
