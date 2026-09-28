@@ -34,6 +34,8 @@ touch config/browser-chat
 Pi reads its extensions only when a session starts, so a primary that was already running before this feature arrived needs one `/reload` (or restart) to load it; `/reload` keeps the conversation.
 Once loaded, the extension checks the flag when the session starts, after each reply, and whenever you run `/browser-chat`, so creating the flag later needs no reload.
 Removing the flag stops the page after the next reply.
+If a start fails, for example because a pinned port is taken, you see one warning, and later replies and session starts do not retry it.
+It is retried only when you run `/browser-chat`, edit the flag file, or restart or `/reload` the session.
 
 To pin a port, add one line to the flag file, such as `port=7788`.
 Without it the page keeps whatever port it first got, so a bookmark keeps working across restarts.
