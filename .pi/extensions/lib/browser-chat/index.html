@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Firstmate chat</title>
+<link rel="stylesheet" href="/style.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<header class="bar">
+  <div class="title">Firstmate</div>
+  <div id="connection" class="pill" data-state="connecting" role="status" aria-live="polite">Connecting…</div>
+  <div id="activity" class="pill" data-state="idle">Idle</div>
+  <div class="spacer"></div>
+  <label class="toggle"><input type="checkbox" id="show-notifications"> Notifications</label>
+  <label class="toggle"><input type="checkbox" id="show-tools"> Tool activity</label>
+</header>
+<main id="log" aria-live="polite"></main>
+<div id="banner" class="banner" hidden></div>
+<footer class="composer">
+  <div id="interim" class="interim" hidden></div>
+  <div class="row">
+    <textarea id="input" rows="2" placeholder="Message Firstmate - Enter sends, Shift+Enter adds a line" aria-label="Message"></textarea>
+    <button id="mic" type="button" class="icon" aria-pressed="false" title="Dictate">🎙</button>
+    <button id="send" type="button" class="primary">Send</button>
+  </div>
+  <div class="meta">
+    <span id="voice-note"></span>
+    <span class="spacer"></span>
+    <span id="latency" title="Transport-to-display time is this page's own link to Firstmate; model time is how long the model took to start answering."></span>
+  </div>
+</footer>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<dialog id="copy-fallback">
+  <p id="copy-fallback-reason"></p>
+  <textarea id="copy-fallback-text" readonly rows="6"></textarea>
+  <p class="hint">The text above is selected; press ⌘C or Ctrl+C to copy it.</p>
+  <form method="dialog"><button>Close</button></form>
+</dialog>
+</body>
+</html>

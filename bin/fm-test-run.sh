@@ -1481,6 +1481,12 @@ families_for_changed_path() {
       printf '%s\n' pr-forge
       printf '%s\n' "__script__:fm-dispatch-resolve.test.sh"
       ;;
+    .pi/extensions/fm-browser-chat.ts|.pi/extensions/lib/fm-browser-chat-server.ts|\
+    .pi/extensions/lib/fm-session-lock.ts|.pi/extensions/lib/browser-chat/*|\
+    bin/fm-browser-chat.sh|tests/fm-browser-chat-driver.mjs)
+      printf '%s\n' __script__:fm-browser-chat.test.sh
+      printf '%s\n' __script__:fm-pi-primary-types.test.sh
+      ;;
     .pi/extensions/fm-branch-supervision.ts|.pi/extensions/lib/fm-async-exec.ts|\
     .pi/extensions/lib/fm-branch-dispatch.ts|.pi/extensions/lib/fm-native-contract.ts)
       # The portable suites that actually load these files, named one by one.
