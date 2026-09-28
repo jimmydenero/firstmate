@@ -1,0 +1,5 @@
+result: "\"ain, shipshape.\\n\\nYou\\n12:05 PM\\n\\nDo not run tools. Reply with exactly: ONE\\n\\nFirstmate\\n12:05 PM\\n\\nONE\\n\\nYou\\n12:05 PM\\nnot sent yet - will retry when connected\\nDo not run tools. Reply with exactly: QUEUED-OK\""
+on: http://127.0.0.1:57097/ served by Pi pid 72413
+result: "\"{\\\"status\\\":\\\"Live\\\",\\\"queuedPromptCount\\\":1,\\\"notSentYet\\\":false,\\\"tail\\\":\\\"Firstmate\\\\n12:05 PM\\\\n\\\\nCaptain, shipshape.\\\\n\\\\nYou\\\\n12:05 PM\\\\n\\\\nDo not run tools. Reply with exactly: ONE\\\\n\\\\nFirstmate\\\\n12:05 PM\\\\n\\\\nONE\\\\n\\\\nYou\\\\n12:05 PM\\\\n\\\\nDo not run tools. Reply with exactly: TWO\\\\n\\\\nFirstmate\\\\n12:05 PM\\\\n\\\\nTWO\\\\n\\\\nYou\\\\n12:05 PM\\\\n\\\\nDo not run tools. Reply with exactly: QUEUED-OK\\\\n\\\\nFirstmate\\\\n12:05 PM\\\\n\\\\nQUEUED-OK\\\"}\""
+terminal occurrences of QUEUED-OK prompt:
+1

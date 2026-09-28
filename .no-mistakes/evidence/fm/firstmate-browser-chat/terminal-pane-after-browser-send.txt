@@ -1,0 +1,50 @@
+
+[Context]
+  AGENTS.md
+
+[Skills]
+  afk, ahoy, ask-user-authority, bearings, bootstrap-diagnostics, captain-hold-lifecycle, decision-hold-lifecycle, diagnostic-reasoning, find-skills, firstmate-codexapp, firstmate-coding-guidelines,
+firstmate-orca, fmx-respond, harness-adapters, no-mistakes, orca-cli, orchestration, process-event-sources, project-management, quiet, quota-array-dispatch, secondmate-provisioning, stow,
+stuck-crewmate-recovery, updatefirstmate
+
+[Extensions]
+  fm-branch-supervision.ts, fm-browser-chat.ts, fm-calm.ts, fm-primary-pi-watch.ts, fm-primary-turnend-guard.ts, orca-agent-status.ts, orca-prefill.ts, orca-titlebar-spinner.ts
+
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys on` to ~/.tmux.conf and restart tmux.
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ Update Available
+ New version 0.87.1 is available. Run pi update
+ Changelog: https://pi.dev/changelog
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+ Reply with exactly the word READY and nothing else. Do not run any tools.
+
+
+ Enforcing mandatory captain address
+
+ READY
+
+
+ Do not run tools. Reply with a markdown heading "Links", then a bulleted list with these two links rendered as markdown links labelled Alpha and Beta:
+ https://www.example.com/oauth/authorize?client_id=1234567890abcdef&redirect_uri=https%3A%2F%2Fexample.org%2Fcallback%2Fvery%2Flong%2Fpath&scope=user_profile%2Cuser_media%2Cpages_show_list&state=abcd
+ efghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ and
+ https://example.net/a/very/long/path/that/keeps/going/and/going/segment-one/segment-two/segment-three?token=zzzzyyyyxxxxwwwwvvvvuuuuttttssss&x=1
+
+
+ Clarifying address and heading format
+
+ Links
+
+ - Alpha
+   (https://www.example.com/oauth/authorize?client_id=1234567890abcdef&redirect_uri=https%3A%2F%2Fexample.org%2Fcallback%2Fvery%2Flong%2Fpath&scope=user_profile%2Cuser_media%2Cpages_show_list&state=a
+   bcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+ - Beta (https://example.net/a/very/long/path/that/keeps/going/and/going/segment-one/segment-two/segment-three?token=zzzzyyyyxxxxwwwwvvvvuuuuttttssss&x=1)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/.no-mistakes/worktrees/e86df410d6d0/01M3KPT0CCE1VRMFCSDC4YPKAV (detached)
+↑50k ↓309 $0.208 (sub) 9.4%/272k (auto)                                                                                                                              (openai-codex) gpt-5.6-sol • medium

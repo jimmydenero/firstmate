@@ -1,0 +1,4 @@
+before reload:
+result: "\"{\\\"articles\\\":10,\\\"pong\\\":1,\\\"harbor\\\":1,\\\"ready\\\":1,\\\"status\\\":\\\"Live\\\"}\""
+after reload of bookmark URL without #token:
+result: "\"{\\\"articles\\\":10,\\\"pong\\\":1,\\\"harbor\\\":1,\\\"ready\\\":1,\\\"status\\\":\\\"Live\\\"}\""

@@ -1,0 +1,3 @@
+after /new endpoint: 57097 01a0e779-6074-7530-a9f9-d19ce45ecfdb
+on: http://127.0.0.1:57097/ served by Pi pid 72413
+result: "\"{\\\"status\\\":\\\"Live\\\",\\\"items\\\":0,\\\"text\\\":\\\"\\\"}\""

@@ -1,0 +1,4 @@
+live /api/events during one ~250-word reply typed at the terminal
+partial frames: 163
+text length at frames 1,10,20,40,80,120,last: [0, 117, 221, 367, 729, 1141, 1480]
+monotonic non-decreasing: True

@@ -1,0 +1,11 @@
+# pinned port 57811 held by another process; three replies after the flag was written:
+95: Do not run tools. Reply with exactly: B
+100: Warning: Browser chat could not start: listen EADDRINUSE: address already in use 127.0.0.1:57811
+103: Do not run tools. Reply with exactly: C
+109: Do not run tools. Reply with exactly: D
+warning count: 1
+fm-browser-chat: browser chat is on but not serving; the primary Pi session must hold the session lock and have loaded the extension (run /reload there)
+port freed, flag unchanged, one more reply:
+fm-browser-chat: browser chat is on but not serving; the primary Pi session must hold the session lock and have loaded the extension (run /reload there)
+flag file edited, one more reply:
+on: http://127.0.0.1:57811/ served by Pi pid 72413

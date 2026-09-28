@@ -1,0 +1,19 @@
+# live security boundary against lab Pi page on 127.0.0.1:57097 (token redacted)
+GET /api/ping no token                                       -> 401 {"error":"missing or wrong access token"}
+GET /api/ping wrong token                                    -> 401 {"error":"missing or wrong access token"}
+GET /api/ping right token                                    -> 200 {"t":1790589634642}
+GET /api/ping right token, Host: evil.example (rebinding)    -> 403 {"error":"host not allowed"}
+GET /api/ping right token, Origin: http://evil.example       -> 403 {"error":"origin not allowed"}
+GET /api/ping right token, Sec-Fetch-Site: cross-site        -> 403 {"error":"cross-site request refused"}
+POST /api/send cross-site with token                         -> 403 {"error":"origin not allowed"}
+GET / page (no token needed for static asset)                -> 200 <!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initia
+# listening sockets:
+node 72413 127.0.0.1:57097
+# private file modes:
+-rw-------@ endpoint.json
+-rw-------@ port
+-rw-------@ token

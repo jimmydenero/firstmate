@@ -1,0 +1,10 @@
+# same requestId posted three times (retry after a lost response), live:
+{"status":"accepted","requestId":"retrytest-0001","delivery":"prompt"}
+{"status":"replay","requestId":"retrytest-0001"}
+{"status":"replay","requestId":"retrytest-0001"}
+# same requestId, different text:
+{"status":"conflict","requestId":"retrytest-0001","message":"this request id was already used for different text"}
+# occurrences of the prompt in the Pi session file:
+       1
+# occurrences in terminal pane:
+1

@@ -1,0 +1,8 @@
+flag removed
+fm-browser-chat: browser chat is off; create /var/folders/ls/q8mk50xj3szgmj_pv0y7zlc00000gn/T//fm-lab.F3KuaF/config/browser-chat, then run /reload (or /browser-chat) in the primary Pi session
+port
+requests.json
+token
+curl to port 57097: 000
+curl to port 57097: connection refused
+result: "\"Reconnecting…\""
